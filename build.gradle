@@ -1,0 +1,60 @@
+apply plugin: 'java'
+
+repositories {
+    mavenCentral()
+    maven { url "https://jitpack.io" }
+    maven { url "https://dl.bintray.com/datadog/datadog-maven" }
+    jcenter()
+
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+dependencies {
+    implementation (
+        'io.opentracing:opentracing-api:0.32.0',
+        'io.opentracing:opentracing-noop:0.32.0',
+        'io.opentracing:opentracing-mock:0.32.0',
+        'io.opentracing:opentracing-util:0.32.0',
+        'com.amazonaws:aws-lambda-java-core:1.2.0',
+        'com.amazonaws:aws-lambda-java-events:2.2.7',
+        'com.amazonaws:aws-lambda-java-log4j:1.0.0',
+        'com.fasterxml.jackson.core:jackson-core:2.9.10',
+        'com.fasterxml.jackson.core:jackson-databind:2.9.10',
+        'com.fasterxml.jackson.core:jackson-annotations:2.9.10'
+    )
+
+    implementation 'com.amazonaws:aws-java-sdk-bom:1.11.228'
+    implementation 'com.amazonaws:aws-java-sdk-s3:1.11.735'
+    implementation 'junit:junit:4.12'
+    implementation 'io.earcam.wrapped:com.sun.tools.attach:1.8.0_jdk8u172-b11'
+
+   // implementation files('/Users/chris.agocs/go/src/github.com/DataDog/datadog-lambda-java/build/libs/datadog-lambda-layer-java-all.jar')
+    implementation 'com.datadoghq:datadog-lambda-java:0.3.2'
+    implementation 'com.datadoghq:dd-trace-api:0.86.0'
+}
+
+// Task for building the zip file for upload
+task buildZip(type: Zip) {
+    // Using the Zip API from gradle to build a zip file of all the dependencies
+    //
+    // The path to this zip file can be set in the serverless.yml file for the
+    // package/artifact setting for deployment to the S3 bucket
+    //
+    // Link: https://docs.gradle.org/current/dsl/org.gradle.api.tasks.bundling.Zip.html
+
+    // set the base name of the zip file
+    baseName = "hello"
+    from compileJava
+    from processResources
+    into('lib') {
+        from configurations.runtimeClasspath
+    }
+}
+
+build.dependsOn buildZip
+
+wrapper{
+    gradleVersion = '6.1'
+}
